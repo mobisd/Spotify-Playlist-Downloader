@@ -1,2 +1,132 @@
-# Spotify-Downloader
- A Python script to download songs from Spotify playlists, embed metadata and lyrics, and save them as MP3 files with a user-friendly GUI.
+Spotify Playlist Downloader with Lyrics Embedding
+This tutorial will guide you through setting up and using the Spotify Playlist Downloader, a Python script that downloads songs from Spotify playlists, embeds metadata and lyrics into the downloaded MP3 files, and saves them in a designated folder. The script leverages the Spotify API and scrapes lyrics from AZLyrics.
+
+Table of Contents
+Requirements
+Setting Up the Environment
+Script Overview
+Running the Script
+GitHub Repository Setup
+Common Issues and Troubleshooting
+Requirements
+To run this script, you need to have the following installed on your system:
+
+Python 3.8 or higher
+pip (Python package installer)
+A Spotify Developer account
+Python Packages
+The script requires several Python packages, which can be installed via pip. The required packages are listed in the requirements.txt file.
+
+requirements.txt:
+text
+Copy code
+customtkinter==5.1.0
+requests==2.31.0
+spotipy==2.22.1
+yt-dlp==2024.7.9
+mutagen==1.45.1
+beautifulsoup4==4.9.3
+python-dotenv==0.19.1
+Text Editors
+You can use any text editor or IDE for editing Python scripts. Some popular options include:
+
+Visual Studio Code
+PyCharm
+Sublime Text
+Atom
+Jupyter Notebook
+Setting Up the Environment
+Install Python and pip:
+
+Download and install Python from the official Python website.
+Ensure pip is installed by running python -m ensurepip --upgrade in your terminal or command prompt.
+Clone or download the script:
+
+Clone the repository or download the script files to your local machine.
+Create a virtual environment:
+
+Navigate to the directory where you downloaded the script.
+Create a virtual environment by running python -m venv venv.
+Activate the virtual environment:
+On Windows: venv\Scripts\activate
+On macOS and Linux: source venv/bin/activate
+Install the required Python packages:
+
+Run pip install -r requirements.txt to install the necessary packages.
+Set up the .env file:
+
+Create a file named .env in the same directory as the script.
+
+Add your Spotify API credentials to the .env file in the following format:
+
+env
+Copy code
+CLIENT_ID=your_spotify_client_id
+CLIENT_SECRET=your_spotify_client_secret
+REDIRECT_URL=http://localhost:8888/callback
+Spotify Developer Account Setup:
+
+Go to the Spotify Developer Dashboard.
+Log in and create a new application to get your CLIENT_ID and CLIENT_SECRET.
+Set the REDIRECT_URL in the app settings to http://localhost:8888/callback.
+Script Overview
+The script downloads songs from Spotify playlists, embeds metadata and lyrics into the MP3 files, and saves them in a folder named after the playlist. Here's an overview of the key components:
+
+Environment Variables: The script uses environment variables stored in a .env file to manage API credentials securely.
+Spotify Authentication: The script authenticates with the Spotify API using OAuth.
+Fetching Playlist Tracks: The script retrieves the tracks from the specified Spotify playlist.
+Downloading Songs: The script searches for the songs on YouTube and downloads the best audio quality available using yt-dlp.
+Embedding Metadata and Lyrics: The script embeds song metadata and lyrics into the downloaded MP3 files using the mutagen library.
+User Interface: The script provides a simple GUI using customtkinter.
+Running the Script
+Start the Script:
+
+Activate your virtual environment if it's not already active.
+Run the script by executing python dl.py in your terminal or command prompt.
+Using the GUI:
+
+The GUI window will open.
+Select the playlist you want to download from the dropdown menu. Note that it may take some time to load the playlist, depending on the number of songs.
+Click the "Download" button to start downloading the playlist.
+The status and progress of the download will be displayed in the GUI.
+To stop the download, click the "Stop Downloading" button. Note that you need to restart the script to download another playlist.
+Restarting the Script:
+
+After downloading a playlist, you need to restart the script to download another playlist due to token handling and session management.
+GitHub Repository Setup
+To set up a GitHub repository for your project, follow these steps:
+
+Create a GitHub Repository:
+
+Go to GitHub and log in.
+Click on the "New" button to create a new repository.
+Fill in the repository name, description, and other details. Click "Create repository".
+Initialize the Local Repository:
+
+Navigate to your project directory in the terminal.
+Initialize a new Git repository: git init.
+Add all files to the repository: git add ..
+Commit the files: git commit -m "Initial commit".
+Add Remote Repository:
+
+Add the remote repository: git remote add origin https://github.com/yourusername/your-repository.git.
+Push to GitHub:
+
+Push the local repository to GitHub: git push -u origin master.
+Common Issues and Troubleshooting
+Environment Variables Not Set:
+
+Ensure the .env file is correctly named and located in the same directory as the script.
+Verify that all required environment variables are set in the .env file.
+Package Installation Issues:
+
+Ensure your virtual environment is activated.
+Run pip install -r requirements.txt to install all required packages.
+Spotify Authentication Issues:
+
+Ensure your Spotify API credentials are correct.
+Verify the REDIRECT_URL is correctly set in both the Spotify Developer Dashboard and the .env file.
+Downloading and Embedding Issues:
+
+Ensure yt-dlp is installed and working correctly.
+Verify that the downloaded MP3 files exist and are not corrupted.
