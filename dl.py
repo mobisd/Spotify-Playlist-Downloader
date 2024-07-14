@@ -7,12 +7,13 @@ import logging
 import customtkinter as ctk
 from tkinter import StringVar
 from dotenv import load_dotenv
-from spotipy import SpotifyOAuth, Spotify
+from spotipy import SpotifyOAuth
 from spotipy.oauth2 import SpotifyOauthError
 import yt_dlp as youtube_dl
-from mutagen.id3 import ID3, APIC, TIT2, TPE1, TALB, TDRC, TCON, TRCK, USLT, error
+from mutagen.id3 import ID3, APIC, TIT2, TPE1, TALB, TDRC, TCON, TRCK, error
 from mutagen.mp3 import MP3
-import lyricsgenius
+from PIL import Image
+from io import BytesIO
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -24,11 +25,10 @@ load_dotenv(dotenv_path='.env')
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 redirect_uri = os.getenv("REDIRECT_URL")
-genius_api_key = os.getenv("GENIUS_API_KEY")
 
 # Ensure environment variables are loaded correctly
-if not client_id or not client_secret or not redirect_uri or not genius_api_key:
-    logging.error("Please set CLIENT_ID, CLIENT_SECRET, REDIRECT_URL, and GENIUS_API_KEY in the .env file")
+if not client_id or not client_secret or not redirect_uri:
+    logging.error("Please set CLIENT_ID, CLIENT_SECRET, and REDIRECT_URL in the .env file")
     exit(1)
 
 # Create an instance of the SpotifyOAuth class
@@ -39,13 +39,9 @@ try:
         redirect_uri=redirect_uri,
         scope="user-library-read playlist-read-private playlist-read-collaborative",
     )
-    sp = Spotify(auth_manager=sp_oauth)
 except SpotifyOauthError as e:
     logging.error(f"Spotify OAuth setup error: {e}")
     exit(1)
-
-# Initialize Genius API client
-genius = lyricsgenius.Genius(genius_api_key)
 
 # Get access token
 token_info = sp_oauth.get_cached_token()
@@ -103,9 +99,6 @@ def get_playlist_tracks(token, playlist_id):
         response_json = response.json()
         for item in response_json["items"]:
             track = item["track"]
-            artist_id = track["artists"][0]["id"]
-            artist_info = sp.artist(artist_id)
-            genre = artist_info["genres"][0] if artist_info["genres"] else "Unknown"
             tracks.append((
                 track["name"],
                 track["artists"][0]["name"],
@@ -113,8 +106,7 @@ def get_playlist_tracks(token, playlist_id):
                 track["album"]["release_date"],
                 track["album"]["images"][0]["url"],
                 track["album"]["artists"][0]["name"],
-                track["album"]["total_tracks"],
-                genre
+                track["album"]["total_tracks"]
             ))
         if len(response_json["items"]) < limit:
             break
@@ -132,16 +124,7 @@ def write_downloaded_track(file_path, track_name):
     with open(file_path, 'a') as file:
         file.write(track_name + '\n')
 
-def fetch_lyrics(track_name, artist_name):
-    try:
-        song = genius.search_song(track_name, artist_name)
-        if song:
-            return song.lyrics
-    except Exception as e:
-        logging.error(f"Error fetching lyrics for {track_name} by {artist_name}: {e}")
-    return None
-
-def embed_metadata(mp3_file, track_info, lyrics=None):
+def embed_metadata(mp3_file, track_info):
     audio = MP3(mp3_file, ID3=ID3)
     try:
         audio.add_tags()
@@ -154,9 +137,6 @@ def embed_metadata(mp3_file, track_info, lyrics=None):
     audio.tags.add(TDRC(encoding=3, text=track_info['year']))
     audio.tags.add(TCON(encoding=3, text=track_info['genre']))
     audio.tags.add(TRCK(encoding=3, text=f"{track_info['track_number']}/{track_info['total_tracks']}"))
-
-    if lyrics:
-        audio.tags.add(USLT(encoding=3, lang='eng', desc='Lyrics', text=lyrics))
 
     response = requests.get(track_info['cover_url'])
     img_data = response.content
@@ -176,6 +156,7 @@ def download_songs(selected_playlist):
     global is_downloading
     is_downloading = True
     status_label.configure(text="Downloading...")
+    progress_bar.set(0)
     download_button.configure(state='disabled')
     stop_button.configure(state='normal')
 
@@ -210,7 +191,7 @@ def download_songs(selected_playlist):
         for attempt in range(retry_count):
             try:
                 logging.info(f"Processing {track[0]} by {track[1]}... (Attempt {attempt + 1}/{retry_count})")
-                search_query = urllib.parse.quote(f"{track[0]} {track[1]}")
+                search_query = urllib.parse.quote(f"{track[0]} {track[1]} lyrics")
                 html = urllib.request.urlopen(f"https://www.youtube.com/results?search_query={search_query}")
                 video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
                 if not video_ids:
@@ -220,9 +201,10 @@ def download_songs(selected_playlist):
                 for video_id in video_ids:
                     try:
                         yt_url = f"https://youtube.com/watch?v={video_id}"
+                        temp_file = os.path.join(download_folder, f"{sanitized_track_name}_temp.%(ext)s")
                         ydl_opts = {
                             'format': 'bestaudio/best',
-                            'outtmpl': os.path.join(download_folder, f"{sanitized_track_name}.%(ext)s"),
+                            'outtmpl': temp_file,
                             'postprocessors': [{
                                 'key': 'FFmpegExtractAudio',
                                 'preferredcodec': 'mp3',
@@ -232,7 +214,8 @@ def download_songs(selected_playlist):
                         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                             ydl.download([yt_url])
                         
-                        if os.path.exists(final_file) and os.path.getsize(final_file) > min_file_size:
+                        if os.path.exists(temp_file.replace('.%(ext)s', '.mp3')) and os.path.getsize(temp_file.replace('.%(ext)s', '.mp3')) > min_file_size:
+                            os.rename(temp_file.replace('.%(ext)s', '.mp3'), final_file)
                             logging.info(f"Downloaded successfully: {final_file}")
                             write_downloaded_track(downloaded_tracks_file, track_name)
 
@@ -241,14 +224,12 @@ def download_songs(selected_playlist):
                                 'artist': track[1],
                                 'album': track[2],
                                 'year': track[3].split('-')[0],
-                                'genre': track[7],
+                                'genre': 'Unknown',
                                 'track_number': str(index + 1),
                                 'total_tracks': str(track[6]),
                                 'cover_url': track[4]
                             }
-
-                            lyrics = fetch_lyrics(track[0], track[1])
-                            embed_metadata(final_file, track_info, lyrics)  # Embed detailed metadata and lyrics into MP3
+                            embed_metadata(final_file, track_info)  # Embed detailed metadata into MP3
                             break
                         else:
                             logging.warning(f"Download failed or incomplete: {final_file}")
@@ -271,6 +252,9 @@ def download_songs(selected_playlist):
                 logging.error(f"Error processing track {track}: {e}")
         else:
             logging.error(f"Failed to download {track[0]} by {track[1]} after {retry_count} attempts")
+
+        progress_bar.set((index + 1) / total_tracks * 100)
+        screen.update_idletasks()
 
     status_label.configure(text="Download completed.")
     download_button.configure(state='normal')
@@ -315,6 +299,10 @@ stop_button.configure(state='disabled')
 # Status label
 status_label = ctk.CTkLabel(frame, text="")
 status_label.pack(pady=10, padx=10, fill="x")
+
+# Progress bar
+progress_bar = ctk.CTkProgressBar(frame)
+progress_bar.pack(pady=10, padx=10, fill="x")
 
 # Start GUI
 screen.mainloop()
