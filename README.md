@@ -1,3 +1,5 @@
+## If you experience an Issue or have a Idea on how to make it better please contact me here or on Discord "mobisd".
+
 # Spotify Playlist Downloader with Lyrics Embedding
 
 This tutorial will guide you through setting up and using the Spotify Playlist Downloader, a Python script that downloads songs from Spotify playlists, embeds metadata and lyrics into the downloaded MP3 files, and saves them in a designated folder. The script leverages the Spotify API and scrapes lyrics from AZLyrics.
@@ -123,6 +125,10 @@ To set up a GitHub repository for your project, follow these steps:
 ## Common Issues and Troubleshooting
 
 ### Environment Variables Not Set:
+
+### Error 403: Forbidden
+- This Error appears sometimes but **dont** Panic it will still download the Song.
+
 - Ensure the `.env` file is correctly named and located in the same directory as the script.
 - Verify that all required environment variables are set in the `.env` file.
 
@@ -137,3 +143,4 @@ To set up a GitHub repository for your project, follow these steps:
 ### Downloading and Embedding Issues:
 - Ensure `yt-dlp` is installed and working correctly.
 - Verify that the downloaded MP3 files exist and are not corrupted.
+
