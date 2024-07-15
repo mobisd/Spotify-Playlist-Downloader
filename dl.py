@@ -6,7 +6,7 @@ import logging
 import urllib.parse
 import urllib.request
 import customtkinter as ctk
-from tkinter import StringVar
+from tkinter import StringVar, BooleanVar
 from dotenv import load_dotenv
 from spotipy import SpotifyOAuth, Spotify
 from spotipy.oauth2 import SpotifyOauthError
@@ -84,6 +84,9 @@ def get_user_playlists(token):
 def sanitize_filename(filename):
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
     return ''.join(c for c in filename if c in valid_chars)
+
+def sanitize_for_windows(filename):
+    return re.sub(r'[<>:"/\\|?*]', '', filename)
 
 # Global variable to control the downloading process
 is_downloading = False
@@ -179,12 +182,27 @@ def embed_metadata(mp3_file, track_info):
     except error:
         pass
 
-    audio.tags.add(TIT2(encoding=3, text=track_info['title']))
-    audio.tags.add(TPE1(encoding=3, text=track_info['artist']))
-    audio.tags.add(TALB(encoding=3, text=track_info['album']))
-    audio.tags.add(TDRC(encoding=3, text=track_info['year']))
-    audio.tags.add(TCON(encoding=3, text=track_info['genre']))
-    audio.tags.add(TRCK(encoding=3, text=f"{track_info['track_number']}/{track_info['total_tracks']}"))
+    if metadata_vars["title"].get():
+        audio.tags.add(TIT2(encoding=3, text=track_info['title']))
+    if metadata_vars["artist"].get():
+        audio.tags.add(TPE1(encoding=3, text=track_info['artist']))
+    if metadata_vars["album"].get():
+        audio.tags.add(TALB(encoding=3, text=track_info['album']))
+    if metadata_vars["year"].get():
+        audio.tags.add(TDRC(encoding=3, text=track_info['year']))
+    if metadata_vars["genre"].get():
+        audio.tags.add(TCON(encoding=3, text=track_info['genre']))
+    if metadata_vars["track"].get():
+        audio.tags.add(TRCK(encoding=3, text=f"{track_info['track_number']}/{track_info['total_tracks']}"))
+    if metadata_vars["lyrics"].get() and 'lyrics' in track_info and track_info['lyrics']:
+        audio.tags.add(
+            USLT(
+                encoding=3,
+                lang=u'eng',
+                desc=u'Lyrics',
+                text=track_info['lyrics']
+            )
+        )
 
     response = requests.get(track_info['cover_url'])
     img_data = response.content
@@ -198,21 +216,12 @@ def embed_metadata(mp3_file, track_info):
             data=img_data
         )
     )
-
-    # Add lyrics
-    if 'lyrics' in track_info and track_info['lyrics']:
-        audio.tags.add(
-            USLT(
-                encoding=3,
-                lang=u'eng',
-                desc=u'Lyrics',
-                text=track_info['lyrics']
-            )
-        )
     audio.save()
 
 def threaded_download_songs(selected_playlist):
-    global download_thread
+    global download_thread, is_downloading
+    is_downloading = True
+    progress_label.configure(text="")
     download_thread = threading.Thread(target=download_songs, args=(selected_playlist,))
     download_thread.start()
 
@@ -225,7 +234,7 @@ def download_songs(selected_playlist):
 
     # Create folder for the playlist
     playlist_name = sanitize_filename(selected_playlist)
-    download_folder = os.path.join(os.getcwd(), playlist_name)
+    download_folder = os.path.join(os.getcwd(), sanitize_for_windows(playlist_name))
     os.makedirs(download_folder, exist_ok=True)
 
     downloaded_tracks_file = os.path.join(download_folder, "downloaded_tracks.txt")
@@ -244,7 +253,7 @@ def download_songs(selected_playlist):
 
         track_name = f"{track[1]} - {track[0]}"
         sanitized_track_name = sanitize_filename(track_name)
-        original_track_name = f"{track[5]} - {track[0]}"
+        original_track_name = sanitize_for_windows(f"{track[5]} - {track[0]}")
         final_file = os.path.join(download_folder, f"{original_track_name}.mp3")
 
         # Check if the track is already in the downloaded tracks file and if the file exists and is larger than 1MB
@@ -278,7 +287,7 @@ def download_songs(selected_playlist):
                             'postprocessors': [{
                                 'key': 'FFmpegExtractAudio',
                                 'preferredcodec': 'mp3',
-                                'preferredquality': '192',
+                                'preferredquality': quality_var.get(),
                             }],
                         }
                         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
@@ -338,13 +347,19 @@ def download_songs(selected_playlist):
     sound = pygame.mixer.Sound('complete.mp3')
     sound.play()
 
+def batch_download_songs():
+    selected_playlists = playlist_listbox.curselection()
+    for i in selected_playlists:
+        selected_playlist = playlist_listbox.get(i)
+        download_songs(selected_playlist)
+
 # GUI setup
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 screen = ctk.CTk()
 screen.title('Spotify Downloader')
-screen.geometry("600x400")
+screen.geometry("600x700")
 
 # Layout
 frame = ctk.CTkFrame(screen, corner_radius=15)
@@ -364,9 +379,20 @@ playlist_dropdown.pack(pady=10, padx=10, fill="x")
 # Fetch playlists and update dropdown
 get_user_playlists(access_token)
 
+# Quality dropdown
+quality_var = StringVar(value="320")
+quality_label = ctk.CTkLabel(frame, text="Select Download Quality:", anchor="w")
+quality_label.pack(fill="x", padx=10)
+quality_dropdown = ctk.CTkComboBox(frame, variable=quality_var, values=["128", "192", "256", "320"])
+quality_dropdown.pack(pady=10, padx=10, fill="x")
+
 # Download button
 download_button = ctk.CTkButton(frame, text="Download", command=lambda: threaded_download_songs(selected_playlist.get()))
 download_button.pack(pady=10, padx=10, fill="x")
+
+# Batch Download button
+batch_button = ctk.CTkButton(frame, text="Batch Download", command=batch_download_songs)
+batch_button.pack(pady=10, padx=10, fill="x")
 
 # Stop Downloading button
 stop_button = ctk.CTkButton(frame, text="Stop Downloading", command=stop_downloading)
@@ -380,6 +406,24 @@ status_label.pack(pady=10, padx=10, fill="x")
 # Progress label
 progress_label = ctk.CTkLabel(frame, text="")
 progress_label.pack(pady=10, padx=10, fill="x")
+
+# Metadata customization
+metadata_label = ctk.CTkLabel(frame, text="Metadata Customization:", anchor="w")
+metadata_label.pack(fill="x", padx=10)
+
+metadata_vars = {
+    "title": BooleanVar(value=True),
+    "artist": BooleanVar(value=True),
+    "album": BooleanVar(value=True),
+    "year": BooleanVar(value=True),
+    "genre": BooleanVar(value=True),
+    "lyrics": BooleanVar(value=True),
+    "track": BooleanVar(value=True)
+}
+
+for key, var in metadata_vars.items():
+    checkbox = ctk.CTkCheckBox(frame, text=key.capitalize(), variable=var)
+    checkbox.pack(anchor="w", padx=10)
 
 # Start GUI
 screen.mainloop()
