@@ -1,9 +1,10 @@
 import os
-import urllib.request
 import requests
 import re
 import string
 import logging
+import urllib.parse
+import urllib.request
 import customtkinter as ctk
 from tkinter import StringVar
 from dotenv import load_dotenv
@@ -13,6 +14,11 @@ import yt_dlp as youtube_dl
 from mutagen.id3 import ID3, APIC, TIT2, TPE1, TALB, TDRC, TCON, TRCK, USLT, error
 from mutagen.mp3 import MP3
 from bs4 import BeautifulSoup
+import pygame
+import threading
+
+# Initialize pygame mixer
+pygame.mixer.init()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -81,18 +87,51 @@ def sanitize_filename(filename):
 
 # Global variable to control the downloading process
 is_downloading = False
+download_thread = None
 
 def stop_downloading():
     global is_downloading
     is_downloading = False
     status_label.configure(text="Downloading stopped.")
     logging.info("Downloading stopped by user.")
+    if download_thread and download_thread.is_alive():
+        download_thread.join(1)
 
 def get_artist_genre(artist_id):
     artist = sp.artist(artist_id)
     if artist and 'genres' in artist and artist['genres']:
         return artist['genres'][0]  # Return the first genre
     return "Unknown"
+
+def sanitize_for_url(text):
+    return re.sub(r'\W+', '', text.lower())
+
+SPECIAL_CASES = {
+    "The Weeknd": "weeknd",
+    # Add more special cases as needed
+}
+
+def get_azlyrics_url(track_title, track_artists):
+    artist_list = track_artists.split(', ')
+    sanitized_artist_name = sanitize_for_url(artist_list[0])
+    
+    if artist_list[0] in SPECIAL_CASES:
+        sanitized_artist_name = SPECIAL_CASES[artist_list[0]]
+    
+    sanitized_song_title = sanitize_for_url(track_title)
+    lyrics_url = f"https://www.azlyrics.com/lyrics/{sanitized_artist_name}/{sanitized_song_title}.html"
+    return lyrics_url
+
+def fetch_lyrics(track_title, track_artists):
+    for artist in track_artists.split(', '):
+        url = f"https://api.lyrics.ovh/v1/{artist}/{track_title}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            lyrics = data.get('lyrics')
+            if lyrics:
+                return lyrics
+    return None
 
 def get_playlist_tracks(token, playlist_id):
     logging.info(f"Retrieving tracks for playlist ID: {playlist_id}")
@@ -133,35 +172,6 @@ def write_downloaded_track(file_path, track_name):
     with open(file_path, 'a') as file:
         file.write(track_name + '\n')
 
-def scrape_lyrics(track_title, track_artists):
-    search_query = f"{track_title} {track_artists}".replace(" ", "+")
-    search_url = f"https://www.google.com/search?q={urllib.parse.quote(search_query)} site:azlyrics.com"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-    response = requests.get(search_url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    lyrics_url = None
-
-    for link in soup.find_all('a', href=True):
-        href = link['href']
-        if 'azlyrics.com/lyrics/' in href:
-            lyrics_url = href
-            break
-
-    if not lyrics_url:
-        logging.warning(f"Lyrics not found for {track_title} by {track_artists}")
-        return None
-
-    lyrics_response = requests.get(lyrics_url)
-    lyrics_soup = BeautifulSoup(lyrics_response.text, 'html.parser')
-    lyrics_div = lyrics_soup.find("div", class_=None, id=None)
-
-    if lyrics_div:
-        lyrics_text = lyrics_div.get_text(separator="\n").strip()
-        if all(artist.lower() in lyrics_text.lower() for artist in track_artists.split(', ')):
-            return lyrics_text
-    return None
-
 def embed_metadata(mp3_file, track_info):
     audio = MP3(mp3_file, ID3=ID3)
     try:
@@ -199,8 +209,12 @@ def embed_metadata(mp3_file, track_info):
                 text=track_info['lyrics']
             )
         )
-    
     audio.save()
+
+def threaded_download_songs(selected_playlist):
+    global download_thread
+    download_thread = threading.Thread(target=download_songs, args=(selected_playlist,))
+    download_thread.start()
 
 def download_songs(selected_playlist):
     global is_downloading
@@ -228,16 +242,20 @@ def download_songs(selected_playlist):
             logging.info("Downloading stopped by user.")
             break
 
+        track_name = f"{track[1]} - {track[0]}"
+        sanitized_track_name = sanitize_filename(track_name)
         original_track_name = f"{track[5]} - {track[0]}"
-        sanitized_track_name = sanitize_filename(original_track_name)
-        final_file = os.path.join(download_folder, f"{sanitized_track_name}.mp3")
+        final_file = os.path.join(download_folder, f"{original_track_name}.mp3")
 
         # Check if the track is already in the downloaded tracks file and if the file exists and is larger than 1MB
-        if original_track_name in downloaded_tracks and os.path.exists(final_file) and os.path.getsize(final_file) > min_file_size:
-            logging.info(f"Skipping, already downloaded: {original_track_name}")
+        if track_name in downloaded_tracks and os.path.exists(final_file) and os.path.getsize(final_file) > min_file_size:
+            logging.info(f"Skipping, already downloaded: {track_name}")
             continue
 
         for attempt in range(retry_count):
+            if not is_downloading:
+                break
+
             try:
                 logging.info(f"Processing {track[0]} by {track[1]}... (Attempt {attempt + 1}/{retry_count})")
                 search_query = f"{track[0]} {track[1].replace(', ', ' ')} lyrics"
@@ -248,6 +266,9 @@ def download_songs(selected_playlist):
                     break
 
                 for video_id in video_ids:
+                    if not is_downloading:
+                        break
+
                     try:
                         yt_url = f"https://youtube.com/watch?v={video_id}"
                         temp_file = os.path.join(download_folder, f"{sanitized_track_name}_temp.%(ext)s")
@@ -268,7 +289,7 @@ def download_songs(selected_playlist):
                             logging.info(f"Downloaded successfully: {final_file}")
                             write_downloaded_track(downloaded_tracks_file, original_track_name)
 
-                            lyrics = scrape_lyrics(track[0], track[1])
+                            lyrics = fetch_lyrics(track[0], track[1])
 
                             track_info = {
                                 'title': track[0],
@@ -305,10 +326,17 @@ def download_songs(selected_playlist):
         else:
             logging.error(f"Failed to download {track[0]} by {track[1]} after {retry_count} attempts")
 
+        # Update the progress in the GUI
+        progress_label.configure(text=f"Songs Downloaded: {index + 1}/{total_tracks}")
+
     status_label.configure(text="Download completed.")
     download_button.configure(state='normal')
     stop_button.configure(state='disabled')
     logging.info("Download completed.")
+
+    # Play the sound when the download is completed
+    sound = pygame.mixer.Sound('complete.mp3')
+    sound.play()
 
 # GUI setup
 ctk.set_appearance_mode("dark")
@@ -337,7 +365,7 @@ playlist_dropdown.pack(pady=10, padx=10, fill="x")
 get_user_playlists(access_token)
 
 # Download button
-download_button = ctk.CTkButton(frame, text="Download", command=lambda: download_songs(selected_playlist.get()))
+download_button = ctk.CTkButton(frame, text="Download", command=lambda: threaded_download_songs(selected_playlist.get()))
 download_button.pack(pady=10, padx=10, fill="x")
 
 # Stop Downloading button
@@ -348,6 +376,10 @@ stop_button.configure(state='disabled')
 # Status label
 status_label = ctk.CTkLabel(frame, text="")
 status_label.pack(pady=10, padx=10, fill="x")
+
+# Progress label
+progress_label = ctk.CTkLabel(frame, text="")
+progress_label.pack(pady=10, padx=10, fill="x")
 
 # Start GUI
 screen.mainloop()
