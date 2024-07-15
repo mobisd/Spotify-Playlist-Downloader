@@ -31,6 +31,7 @@ yt-dlp==2024.7.9
 mutagen==1.45.1
 beautifulsoup4==4.9.3
 python-dotenv==0.19.1
+pygame==2.1.0
 ```
 
 ### Text Editors
