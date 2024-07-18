@@ -1,5 +1,5 @@
 customtkinter==5.1.0
-requests==2.31.0
+requests==2.32.2
 spotipy==2.22.1
 yt-dlp==2024.7.9
 mutagen==1.45.1
