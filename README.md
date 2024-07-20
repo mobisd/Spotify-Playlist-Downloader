@@ -57,17 +57,17 @@ You can use any text editor or IDE for editing Python scripts. Some popular opti
 
 ## Add to Path:
 
--Open the Start Menu and search for "Environment Variables".
--Click on "Edit the system environment variables".
--In the System Properties window, click on the "Environment Variables" button.
--In the Environment Variables window, find the Path variable in the "System variables" section, and click "Edit".
--Click "New" and add the path to the bin directory of the extracted FFmpeg folder (e.g., C:\ffmpeg\bin).
--Click "OK" to close all windows.
+- Open the Start Menu and search for "Environment Variables".
+- Click on "Edit the system environment variables".
+- In the System Properties window, click on the "Environment Variables" button.
+- In the Environment Variables window, find the Path variable in the "System variables" section, and click "Edit".
+- Click "New" and add the path to the bin directory of the extracted FFmpeg folder (e.g., C:\ffmpeg\bin).
+- Click "OK" to close all windows.
 
 ## Verify Installation:
 
--Open Command Prompt and type ffmpeg -version.
--You should see the version information of FFmpeg if it's installed correctly.
+- Open Command Prompt and type ffmpeg -version.
+- You should see the version information of FFmpeg if it's installed correctly.
 
 ### Clone or download the script:
 1. Clone the repository or download the script files to your local machine.
