@@ -48,6 +48,27 @@ You can use any text editor or IDE for editing Python scripts. Some popular opti
 1. Download and install Python from the [official Python website](https://www.python.org/).
 2. Ensure pip is installed by running `python -m ensurepip --upgrade` in your terminal or command prompt.
 
+### Install FFmpeg
+# FFmpeg is a required dependency for the downloader to function properly. Follow the steps below to install FFmpeg on your system.
+
+## Windows
+- Download: Go to the FFmpeg download page and download the latest release.
+- Extract: Extract the downloaded zip file to a directory of your choice.
+
+## Add to Path:
+
+-Open the Start Menu and search for "Environment Variables".
+-Click on "Edit the system environment variables".
+-In the System Properties window, click on the "Environment Variables" button.
+-In the Environment Variables window, find the Path variable in the "System variables" section, and click "Edit".
+-Click "New" and add the path to the bin directory of the extracted FFmpeg folder (e.g., C:\ffmpeg\bin).
+-Click "OK" to close all windows.
+
+## Verify Installation:
+
+-Open Command Prompt and type ffmpeg -version.
+-You should see the version information of FFmpeg if it's installed correctly.
+
 ### Clone or download the script:
 1. Clone the repository or download the script files to your local machine.
 
