@@ -11,12 +11,20 @@ from functools import lru_cache
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Dict, Any
 
+<<<<<<< Updated upstream
 import requests
 from dotenv import load_dotenv
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth, SpotifyOauthError
 import customtkinter as ctk
 from tkinter import StringVar
+=======
+# Suppress Tkinter deprecation warning on macOS
+os.environ['TK_SILENCE_DEPRECATION'] = '1'
+
+# Initialize pygame mixer
+pygame.mixer.init()
+>>>>>>> Stashed changes
 
 import yt_dlp
 from mutagen.id3 import ID3, TIT2, TPE1, TALB, TDRC, TCON, APIC
@@ -50,10 +58,20 @@ CACHE_TIMEOUT = 300  # 5 minutes
 PREVIEW_TRACK_LIMIT = 20
 LAZY_LOAD_THRESHOLD = 100  # Only load preview for playlists with < 100 tracks initially
 
+<<<<<<< Updated upstream
 # Global caches
 playlist_cache: Dict[str, Dict[str, Any]] = {}
 tracks_cache: Dict[str, List[dict]] = {}
 image_cache: Dict[str, Any] = {}
+=======
+# Function to update the dropdown menu
+def update_playlist_dropdown():
+    playlist_names = list(playlists.keys())
+    playlist_dropdown.configure(values=playlist_names)
+    if playlist_names:
+        selected_playlist.set(playlist_names[0])
+    screen.update_idletasks()  # Ensure GUI is refreshed
+>>>>>>> Stashed changes
 
 # ---------------------------
 # URL Parsing & Validation
@@ -178,6 +196,7 @@ def get_album_tracks(sp: Spotify, album_id: str) -> List[dict]:
     logger.info(f"Album tracks retrieved: {len(tracks)}")
     return tracks
 
+<<<<<<< Updated upstream
 # ---------------------------
 # Spotify helpers
 # ---------------------------
@@ -1890,6 +1909,11 @@ class App(ctk.CTk):
             )
             self.start_btn.configure(state="normal", text="▶️ Start Download")
             return
+=======
+# GUI setup
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+>>>>>>> Stashed changes
 
         # Clear existing queue
         total = len(tracks)
@@ -2026,7 +2050,12 @@ class App(ctk.CTk):
         finally:
             self.after(100, self.process_ui_queue)
 
+<<<<<<< Updated upstream
 
 if __name__ == "__main__":
     app = App()
     app.mainloop()
+=======
+# Start GUI
+screen.mainloop()
+>>>>>>> Stashed changes
