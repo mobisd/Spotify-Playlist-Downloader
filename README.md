@@ -1,6 +1,6 @@
 ## If you experience an Issue or have a Idea on how to make it better please contact me here or on Discord "mobisd".
 
-# 🎵 Spotify Playlist Downloader - Professional Edition
+# Spotify Playlist Downloader - Professional Edition
 
 A sophisticated, high-performance Spotify playlist and album downloader featuring a **stunning modern UI**, **enterprise-grade performance**, and **direct URL support**. Download any Spotify content with professional quality and lightning-fast speed.
 
