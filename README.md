@@ -4,57 +4,22 @@
 
 A sophisticated, high-performance Spotify playlist and album downloader featuring a **stunning modern UI**, **enterprise-grade performance**, and **direct URL support**. Download any Spotify content with professional quality and lightning-fast speed.
 
-## ✨ Key Features
 
-### 🎨 **Professional Glass-Morphism UI**
-- **Stunning modern interface** with sophisticated purple-cyan color scheme
-- **Glass-morphism effects** with smooth corners and professional styling
-- **Responsive design** with optimized layout and visual hierarchy
-- **Real-time preview** with cover art and metadata display
-
-### ⚡ **Enterprise Performance**
-- **3000% faster loading** with intelligent caching systems
-- **Lazy loading** for large playlists (100+ tracks)
-- **Multi-threaded downloads** with ThreadPoolExecutor
-- **Background processing** keeping UI responsive at all times
-
-### 🔗 **Direct URL Support** *(NEW!)*
+### Direct URL Support
 - **Paste any Spotify URL** for instant downloads
 - **Support for playlists AND albums**
 - **Multiple URL formats**: open.spotify.com, spotify: URIs, short links
 - **One-click paste** from clipboard
 - **Smart content detection** with visual indicators
 
-### 🎯 **Advanced Features**
+### Advanced Features
 - **Metadata embedding** with lyrics integration
 - **High-quality audio** downloads via yt-dlp
 - **Progress tracking** with real-time status updates
 - **Error handling** with graceful recovery
 - **Batch processing** for efficient downloads
 
-## Table of Contents
-- [Key Features](#-key-features)
-- [Screenshots](#-screenshots)
-- [Quick Start](#-quick-start)
-- [Requirements](#requirements)
-- [Detailed Setup](#-detailed-setup)
-- [Usage Guide](#-usage-guide)
-- [URL Support](#-url-support-new)
-- [Performance Features](#-performance-features)
-- [Troubleshooting](#-troubleshooting)
-
-## 📸 Screenshots
-
-### Modern Professional Interface
-![Professional UI with glass-morphism effects and sophisticated color scheme]
-
-### URL Support Feature
-![Direct URL input with smart content detection and visual indicators]
-
-### Performance Dashboard
-![Real-time progress tracking with metadata preview and download status]
-
-## 🚀 Quick Start
+## Quick Start
 
 1. **Clone the repository**
    ```bash
@@ -89,15 +54,6 @@ A sophisticated, high-performance Spotify playlist and album downloader featurin
    - Select playlists from dropdown OR
    - Paste any Spotify URL for instant download
 
-## Requirements
-
-### System Requirements
-- **Operating System**: Windows 10+, macOS 10.14+, Linux (Ubuntu 18.04+)
-- **Python**: 3.8 or higher
-- **Memory**: 4GB RAM minimum, 8GB recommended
-- **Storage**: 1GB for application, additional space for downloads
-- **Network**: Stable internet connection for streaming and downloads
-
 ### Python Dependencies
 ```txt
 customtkinter==5.1.0      # Modern UI framework
@@ -110,13 +66,6 @@ python-dotenv==0.19.1     # Environment variables
 pygame==2.1.0             # Audio playback
 Pillow==9.5.0             # Image processing
 ```
-
-### External Dependencies
-- **FFmpeg**: Audio processing and conversion
-- **Spotify Premium**: Recommended for best experience
-- **YouTube access**: For audio source downloading
-
-## 🛠️ Detailed Setup
 
 ### Prerequisites
 - **Python 3.8+** - Download from [python.org](https://www.python.org/)
@@ -184,8 +133,6 @@ sudo apt install ffmpeg
    REDIRECT_URL=http://localhost:8888/callback
    ```
 
-## 🔗 URL Support *(NEW!)*
-
 ### Supported Formats
 - **Playlists**: `https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M`
 - **Albums**: `https://open.spotify.com/album/4yP0hdKOZPNshxUOjY0cZj`
@@ -198,32 +145,7 @@ sudo apt install ffmpeg
 3. **Click "Load from URL"** - content loads instantly
 4. **Preview and download** - same beautiful interface
 
-### Visual Indicators
-- 📋 **Playlists** with track count and creator info
-- 💿 **Albums** with artist name and release details
-- **Smart detection** automatically identifies content type
-
-## ⚡ Performance Features
-
-### Lightning-Fast Loading
-- **Intelligent caching** - playlists load instantly on repeat access
-- **Lazy loading** - large playlists (100+ tracks) load progressively
-- **Background processing** - UI stays responsive during operations
-- **Multi-threading** - 3 concurrent download workers
-
-### Memory Optimization
-- **LRU cache management** for playlist and track data
-- **Image caching** for cover art with automatic cleanup
-- **Efficient data structures** minimizing memory footprint
-- **Smart preview limits** preventing UI overload
-
-### Network Optimization
-- **Batch API requests** reducing Spotify API calls
-- **Connection pooling** for faster HTTP requests
-- **Retry mechanisms** with exponential backoff
-- **Bandwidth management** for stable downloads
-
-## 📱 Usage Guide
+## Usage Guide
 
 ### Method 1: Browse Your Playlists
 1. **Launch the application** - Beautiful interface loads with your playlists
@@ -231,7 +153,7 @@ sudo apt install ffmpeg
 3. **Preview content** - See cover art, track count, and metadata
 4. **Click download** - Professional progress tracking begins
 
-### Method 2: Direct URL Download *(NEW!)*
+### Method 2: Direct URL Download
 1. **Copy Spotify URL** - From any playlist or album
 2. **Paste in URL field** - Large input field with paste button
 3. **Auto-detection** - System identifies content type automatically
@@ -240,43 +162,23 @@ sudo apt install ffmpeg
 
 ### User Interface Elements
 
-#### 🎨 **Main Interface**
-- **Sophisticated color scheme** - Purple, cyan, and amber accents
-- **Glass-morphism cards** - Modern frosted glass effects
-- **Professional typography** - Clear, readable fonts with proper hierarchy
-- **Responsive layout** - Optimized for different screen sizes
-
-#### 🔧 **Control Panel**
+#### **Control Panel**
 - **Playlist dropdown** - Instant loading with search capability
 - **URL input section** - Large field with clipboard integration
 - **Download controls** - Start, stop, and progress management
 - **Status indicators** - Real-time feedback and error messages
 
-#### 📊 **Preview Section**
+#### **Preview Section**
 - **Cover art display** - High-quality album artwork
 - **Metadata panel** - Artist, track count, release info
 - **Content type badges** - Visual distinction between playlists/albums
 - **Track listing** - Expandable for large collections
 
-## 🎛️ Advanced Controls
-
-### Download Management
-- **Quality selection** - Choose audio quality preferences
-- **Batch processing** - Handle multiple downloads efficiently
-- **Progress tracking** - Real-time status for each track
-- **Error recovery** - Automatic retry with fallback options
-
-### Performance Tuning
-- **Cache settings** - Adjust memory usage for your system
-- **Thread management** - Configure concurrent download workers
-- **Network optimization** - Bandwidth and connection settings
-- **Preview limits** - Customize lazy loading thresholds
-
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
-#### ❌ **Authentication Problems**
+#### **Authentication Problems**
 ```
 Error: "Invalid client credentials"
 ```
@@ -286,7 +188,7 @@ Error: "Invalid client credentials"
 - Ensure no extra spaces in credentials
 - Confirm redirect URI matches Spotify app settings
 
-#### ❌ **FFmpeg Not Found**
+#### **FFmpeg Not Found**
 ```
 Error: "ffmpeg not found in PATH"
 ```
@@ -296,7 +198,7 @@ Error: "ffmpeg not found in PATH"
 - Verify with `ffmpeg -version` command
 - Check PATH environment variable includes FFmpeg
 
-#### ❌ **Slow Performance**
+#### **Slow Performance**
 ```
 Issue: "Playlists loading slowly"
 ```
@@ -306,7 +208,7 @@ Issue: "Playlists loading slowly"
 - Reduce concurrent downloads in settings
 - Enable lazy loading for large playlists
 
-#### ❌ **Download Failures**
+#### **Download Failures**
 ```
 Error: "Failed to download track"
 ```
@@ -318,13 +220,13 @@ Error: "Failed to download track"
 
 ### Performance Tips
 
-#### 🚀 **Speed Optimization**
+#### **Speed Optimization**
 - **Enable caching** - Keeps playlists loaded for instant access
 - **Use URL input** - Fastest method for specific content
 - **Limit preview tracks** - Reduces initial loading time
 - **Close other apps** - Free up system resources
 
-#### 💾 **Memory Management**
+#### **Memory Management**
 - **Restart periodically** - Clears accumulated cache
 - **Monitor disk space** - Ensure adequate storage
 - **Adjust thread count** - Balance speed vs. system load
@@ -332,7 +234,7 @@ Error: "Failed to download track"
 
 ### Advanced Troubleshooting
 
-#### 🔍 **Debug Mode**
+#### **Debug Mode**
 Enable detailed logging for issue diagnosis:
 ```python
 # Add to dl.py for debugging
@@ -340,20 +242,20 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 ```
 
-#### 🌐 **Network Issues**
+#### **Network Issues**
 - **Check firewall settings** - Ensure Spotify/YouTube access
 - **Test with VPN** - Rule out regional restrictions
 - **Verify DNS settings** - Use public DNS if needed
 - **Monitor bandwidth** - Ensure sufficient connection speed
 
-#### 🔧 **Configuration Reset**
+#### **Configuration Reset**
 If issues persist, reset configuration:
 1. Delete cache folder (if exists)
 2. Remove `.env` file and recreate
 3. Reinstall dependencies: `pip install -r requirements.txt --force-reinstall`
 4. Restart application
 
-## 📞 Support
+## Support
 
 ### Getting Help
 - **Issues**: Create GitHub issue with error details
@@ -368,17 +270,3 @@ Include when reporting issues:
 - **Error message** (full traceback)
 - **Steps to reproduce** the problem
 - **Expected vs actual behavior**
-
----
-
-## 🎉 **Ready to Download!**
-
-Your professional Spotify downloader is now ready with:
-- ✅ **Stunning modern UI** with glass-morphism design
-- ✅ **Lightning-fast performance** with enterprise-grade caching
-- ✅ **Direct URL support** for playlists and albums
-- ✅ **Professional error handling** and user experience
-- ✅ **High-quality downloads** with metadata embedding
-
-**Start downloading your favorite music with style!** 🎵✨
-
