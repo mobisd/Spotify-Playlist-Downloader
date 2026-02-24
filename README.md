@@ -23,7 +23,7 @@ A sophisticated, high-performance Spotify playlist and album downloader featurin
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/Spotify-Playlist-Downloader.git
+   git clone https://github.com/mobisd/Spotify-Playlist-Downloader
    cd Spotify-Playlist-Downloader
    ```
 
