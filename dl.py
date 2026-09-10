@@ -5,32 +5,26 @@ import logging
 import threading
 import queue
 import time
-import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Dict, Any
 
-<<<<<<< Updated upstream
 import requests
 from dotenv import load_dotenv
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth, SpotifyOauthError
 import customtkinter as ctk
 from tkinter import StringVar
-=======
 # Suppress Tkinter deprecation warning on macOS
 os.environ['TK_SILENCE_DEPRECATION'] = '1'
 
-# Initialize pygame mixer
-pygame.mixer.init()
->>>>>>> Stashed changes
 
 import yt_dlp
 from mutagen.id3 import ID3, TIT2, TPE1, TALB, TDRC, TCON, APIC
 from mutagen.mp3 import MP3
 
-from PIL import Image, ImageDraw
+from PIL import Image
 import io
 import datetime
 
@@ -58,20 +52,11 @@ CACHE_TIMEOUT = 300  # 5 minutes
 PREVIEW_TRACK_LIMIT = 20
 LAZY_LOAD_THRESHOLD = 100  # Only load preview for playlists with < 100 tracks initially
 
-<<<<<<< Updated upstream
+
 # Global caches
 playlist_cache: Dict[str, Dict[str, Any]] = {}
 tracks_cache: Dict[str, List[dict]] = {}
 image_cache: Dict[str, Any] = {}
-=======
-# Function to update the dropdown menu
-def update_playlist_dropdown():
-    playlist_names = list(playlists.keys())
-    playlist_dropdown.configure(values=playlist_names)
-    if playlist_names:
-        selected_playlist.set(playlist_names[0])
-    screen.update_idletasks()  # Ensure GUI is refreshed
->>>>>>> Stashed changes
 
 # ---------------------------
 # URL Parsing & Validation
@@ -196,7 +181,6 @@ def get_album_tracks(sp: Spotify, album_id: str) -> List[dict]:
     logger.info(f"Album tracks retrieved: {len(tracks)}")
     return tracks
 
-<<<<<<< Updated upstream
 # ---------------------------
 # Spotify helpers
 # ---------------------------
@@ -371,7 +355,6 @@ def get_playlist_tracks(sp: Spotify, playlist_id: str, limit: Optional[int] = No
             
             # Get next batch if needed
             if total_processed < max_tracks and results.get('next'):
-                remaining = max_tracks - total_processed
                 results = sp.next(results)
             else:
                 break
@@ -425,8 +408,12 @@ def download_worker(task_queue: "queue.Queue[DownloadTask]", ui_queue: "queue.Qu
     import random
     
     while True:
-        task: Optional[DownloadTask] = task_queue.get()
+        try:
+            task: Optional[DownloadTask] = task_queue.get_nowait()
+        except queue.Empty:
+            break
         if task is None:
+            task_queue.task_done()
             break
 
         track = task.track
@@ -494,7 +481,6 @@ def download_worker(task_queue: "queue.Queue[DownloadTask]", ui_queue: "queue.Qu
             time.sleep(delay)
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                query = f"{artists} {title} audio"
                 ui_queue.put(("status", f"Searching: {artists} - {title}"))
                 
                 filepath = None
@@ -754,8 +740,6 @@ class App(ctk.CTk):
         self.create_log_section()
         
         # Debug: Print that UI is complete
-        print("✅ UI Setup Complete - All sections created")
-        print("🎛️ Download Control Center should be visible now")
     
     def create_header(self):
         """Create stunning gradient header with glass-morphism effects"""
@@ -1075,7 +1059,6 @@ class App(ctk.CTk):
     
     def create_controls_section(self):
         """Create modern control panel with gradient buttons"""
-        print("🎛️ Creating Download Control Center...")
         
         controls_card = ctk.CTkFrame(
             self.content_frame,
@@ -1166,9 +1149,6 @@ class App(ctk.CTk):
         )
         self.status_label.pack(side="left", pady=12)
         
-        print("✅ Download Control Center created successfully!")
-        print(f"▶️ Start button created: {self.start_btn}")
-        print(f"⏹️ Stop button created: {self.stop_btn}")
     
     def create_progress_section(self):
         """Create stunning progress tracking with animated elements"""
@@ -1314,18 +1294,14 @@ class App(ctk.CTk):
 
     def log(self, msg: str, level: str = "INFO"):
         """Enhanced logging with timestamps and color coding"""
-        import datetime
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
         
         # Color coding based on message content
-        if "Error" in msg or "Failed" in msg:
-            level = "ERROR"
+        if level == "ERROR" or "Error" in msg or "Failed" in msg:
             prefix = "❌"
-        elif "Success" in msg or "Saved:" in msg or "completed" in msg.lower():
-            level = "SUCCESS"
+        elif level == "SUCCESS" or "Success" in msg or "Saved:" in msg or "completed" in msg.lower():
             prefix = "✅"
-        elif "Warning" in msg:
-            level = "WARNING"
+        elif level == "WARNING" or "Warning" in msg:
             prefix = "⚠️"
         else:
             prefix = "ℹ️"
@@ -1361,7 +1337,7 @@ class App(ctk.CTk):
                 self.after(0, lambda: self._update_playlist_ui(names_with_info, None))
                 
             except Exception as e:
-                self.after(0, lambda: self._update_playlist_ui([], str(e)))
+                self.after(0, lambda error=str(e): self._update_playlist_ui([], error))
         
         # Update status
         self.status_label.configure(text="🔄 Loading playlists...")
@@ -1456,7 +1432,7 @@ class App(ctk.CTk):
                 self.after(0, lambda: self._handle_url_content(content_info))
                 
             except Exception as e:
-                self.after(0, lambda: self.log(f"❌ Error loading URL: {e}", "ERROR"))
+                self.after(0, lambda error=str(e): self.log(f"❌ Error loading URL: {error}", "ERROR"))
                 self.after(0, lambda: self.status_label.configure(
                     text="❌ Loading failed",
                     text_color=self.colors["error"]
@@ -1796,7 +1772,7 @@ class App(ctk.CTk):
                 self.update_playlist_preview(playlist_name, force_full_load=True)
                 
             except Exception as e:
-                self.after(0, lambda: self.log(f"Failed to load full preview: {e}", "ERROR"))
+                self.after(0, lambda error=str(e): self.log(f"Failed to load full preview: {error}", "ERROR"))
             finally:
                 self.preview_loading = False
         
@@ -1909,11 +1885,6 @@ class App(ctk.CTk):
             )
             self.start_btn.configure(state="normal", text="▶️ Start Download")
             return
-=======
-# GUI setup
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("blue")
->>>>>>> Stashed changes
 
         # Clear existing queue
         total = len(tracks)
@@ -1940,7 +1911,7 @@ ctk.set_default_color_theme("blue")
         
         # Update buttons
         self.start_btn.configure(
-            state="disabled", 
+            state="disabled",
             text="⏳ Downloading...",
             fg_color="#666666"
         )
@@ -1962,7 +1933,7 @@ ctk.set_default_color_theme("blue")
             self.log("No download in progress", "WARNING")
             return
             
-        self.downloading = False
+        # Keep Start disabled until the active worker exits.
         
         # Clear queue
         while not self.task_queue.empty():
@@ -1981,7 +1952,7 @@ ctk.set_default_color_theme("blue")
         )
         
         self.start_btn.configure(
-            state="normal", 
+            state="disabled",
             text="▶️ Start Download",
             fg_color=self.colors["success"]
         )
@@ -2050,12 +2021,7 @@ ctk.set_default_color_theme("blue")
         finally:
             self.after(100, self.process_ui_queue)
 
-<<<<<<< Updated upstream
 
 if __name__ == "__main__":
     app = App()
     app.mainloop()
-=======
-# Start GUI
-screen.mainloop()
->>>>>>> Stashed changes

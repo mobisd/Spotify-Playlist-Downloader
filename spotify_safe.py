@@ -6,7 +6,7 @@ This version avoids all external web requests that could trigger bot detection
 
 import os
 import logging
-from typing import List, Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any
 from tkinter import StringVar
 import customtkinter as ctk
 from dotenv import load_dotenv
@@ -535,9 +535,9 @@ class App(ctk.CTk):
         self.preview_box.insert("end", f"📊 Type: {content_type.title()}\n")
         
         if info.get('from_url'):
-            self.preview_box.insert("end", f"🔗 Loaded from URL\n")
+            self.preview_box.insert("end", "🔗 Loaded from URL\n")
         
-        self.preview_box.insert("end", f"\n✅ Ready to download!")
+        self.preview_box.insert("end", "\n✅ Ready to download!")
         self.preview_box.configure(state="disabled")
         
         self.log(f"Preview updated for {content_type}: {name}", "INFO")
